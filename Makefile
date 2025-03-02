@@ -3,9 +3,9 @@
 
 REPORT := $(or $(REPORT),report -m)
 GIT_CHANGED_PYTHON_FILES := $(shell git diff --name-only -- '***.py')
-DEV_TOOLS := $(and $(shell which docker git pandoc))
+DEV_TOOLS := $(and $(shell which docker git pandoc lynx))
 COMPOSE_FILE := 'docker-compose.yml'
-RUNNING_CONTAINERS := $(shell docker ps -a -q -f name="spectrum-*")
+RUNNING_CONTAINERS := $(shell docker ps -a -q -f name="endlesshorizon-*")
 SERVICE := $(or $(SERVICE),web-dev)
 SRC := $(or $(SRC),.)
 CMD := $(or $(CMD),)
@@ -22,7 +22,7 @@ else
 endif
 
 help: dev-tools-check
-	@pandoc help.md
+	@pandoc help.md | lynx -dump -stdin
 
 dev-tools-check:
 ifeq ($(DEV_TOOLS),)
@@ -52,16 +52,16 @@ else
 endif
 
 static: dev-tools-check
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py collectstatic --settings=spectrum.settings.dev
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py collectstatic --settings=endlesshorizon.settings.dev
 
 migrate: dev-tools-check
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py migrate --settings=spectrum.settings.dev
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py migrate --settings=endlesshorizon.settings.dev
 
 migrations: dev-tools-check
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py makemigrations --settings=spectrum.settings.dev $(ARGS)
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py makemigrations --settings=endlesshorizon.settings.dev $(ARGS)
 
 repl: dev-tools-check
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py shell --settings=spectrum.settings.dev
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py shell --settings=endlesshorizon.settings.dev
 
 shell:
 	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) /bin/bash
@@ -69,21 +69,15 @@ shell:
 test: dev-tools-check
 	@rm -rf coverage
 ifneq ($(and $(TEST-CASE),$(SRC)),)
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --source=$(SRC) --branch ./manage.py test --settings=spectrum.settings.test --no-input $(TEST-CASE); docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage $(REPORT)
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --source=$(SRC) --branch ./manage.py test --settings=endlesshorizon.settings.test --no-input $(TEST-CASE); docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage $(REPORT)
 else ifneq ($(SRC),)
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --source=$(SRC) --branch ./manage.py test --settings=spectrum.settings.test --no-input; docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage $(REPORT)
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --source=$(SRC) --branch ./manage.py test --settings=endlesshorizon.settings.test --no-input; docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage $(REPORT)
 else ifneq ($(TEST-CASE),)
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --branch ./manage.py test --settings=spectrum.settings.test --no-input $(TEST-CASE) --parallel
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --branch ./manage.py test --settings=endlesshorizon.settings.test --no-input $(TEST-CASE) --parallel
 else
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --branch ./manage.py test --settings=spectrum.settings.test --no-input --parallel
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run coverage run --branch ./manage.py test --settings=endlesshorizon.settings.test --no-input --parallel
 endif
 	@rm -rf .coverage.*
-
-reschedule:
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py reschedule --settings=spectrum.settings.dev
-
-reschedule2:
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py scheduler_2 --settings=spectrum.settings.dev
 
 clean:
 	@docker container prune -f
@@ -113,7 +107,7 @@ else
 endif
 
 create-super-user:
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py createsuperuser --settings=spectrum.settings.dev
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py createsuperuser --settings=endlesshorizon.settings.dev
 
 requirements:
 	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry export -f requirements.txt -o requirements.txt
@@ -146,7 +140,7 @@ endif
 
 db-shell: dev-tools-check
 ifeq ($(SERVICE),web-dev)
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py dbshell --settings=spectrum.settings.dev
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py dbshell --settings=endlesshorizon.settings.dev
 else
 	$(error Command not available for service: '$(SERVICE)')
 endif
@@ -157,7 +151,7 @@ ifeq ($(CMD),)
 endif
 
 ifeq ($(SERVICE),web-dev)
-	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py $(CMD) --settings=spectrum.settings.dev
+	@docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE) poetry run python manage.py $(CMD) --settings=endlesshorizon.settings.dev
 else
 	$(error Command not available for service: '$(SERVICE)')
 endif
