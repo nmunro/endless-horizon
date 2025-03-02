@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+
+  web-dev:
+    build: 
+        context: .
+        target: dev
+    command: ["poetry", "run", "gunicorn", "--bind", ":8000", "--workers", "3", "endlesshorizon.wsgi:application", "--env", "DJANGO_SETTINGS_MODULE=endlesshorizon.settings.dev"]
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: host
+      - target: 5678
+        published: 5678
+        protocol: tcp
+        mode: host
+    depends_on:
+      - db
+    volumes:
+      - type: bind
+        source: .
+        target: /app/endlesshorizon
+      - type: bind
+        source: /tmp
+        target: /app/tmp
+    env_file:
+        - .env
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+
+  web:
+    build: .
+    command: ["poetry", "run", "gunicorn", "--bind", ":8000", "--workers", "3", "endlesshorizon.wsgi:application", "--env", "DJANGO_SETTINGS_MODULE=endlesshorizon.settings.prod"]
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: host
+    depends_on:
+      - db
+    volumes:
+      - type: bind
+        source: .
+        target: /app/endlesshorizon
+      - type: bind
+        source: /tmp
+        target: /app/tmp
+    env_file:
+        - .env
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+
+volumes:
+  postgres_data:
+  endlesshorizon:

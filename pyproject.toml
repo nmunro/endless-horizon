@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "endlesshorizon"
+version = "0.1.0"
+description = ""
+authors = ["NMunro <neilmunro@gmail.com>"]
+readme = "README.md"
+packages = [{include = "endlesshorizon"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+django = "^5.1.6"
+gunicorn = "^23.0.0"
+python-decouple = "^3.8"
+dj-database-url = "^2.3.0"
+psycopg = "^3.2.5"
+django-crispy-forms = "^2.3"
+crispy-bootstrap5 = "^2024.10"
+whitenoise = "^6.9.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
